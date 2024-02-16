@@ -122,6 +122,11 @@ dependencies {
 	testImplementation(libs.kotlinx.coroutines.test)
 	testImplementation(libs.mockito.kotlin)
 	testImplementation(libs.truth)
+	testImplementation(libs.mockk)
+	testImplementation(libs.turbine)
+	testImplementation(libs.androidx.core.testing)
+
+
 	// Instrumented tests: jUnit rules and runners
 
 	androidTestImplementation(libs.androidx.test.core)
