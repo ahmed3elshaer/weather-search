@@ -27,6 +27,12 @@ class WeatherSearchViewModel @Inject constructor(
     private var lastEvent: WeatherSearchUserEvent = WeatherSearchUserEvent.SearchByLocation
 
     private val uiStateImpl = MutableStateFlow(WeatherSearchUiState())
+    val measurementUnit: StateFlow<MeasurementUnit> = measurementUseCase.get()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = MeasurementUnit.Metric
+        )
 
     val uiState: StateFlow<WeatherSearchUiState> = uiStateImpl
         .stateIn(
@@ -35,11 +41,8 @@ class WeatherSearchViewModel @Inject constructor(
             initialValue = WeatherSearchUiState()
         )
 
-    init {
-        onUserEvent(lastEvent)
-    }
-
     fun onUserEvent(event: WeatherSearchUserEvent) {
+        lastEvent = event
         viewModelScope.launch {
             uiStateImpl.value = uiState.value.copy(isLoading = true)
             val result = when (event) {
@@ -48,10 +51,11 @@ class WeatherSearchViewModel @Inject constructor(
             }
             result.fold(
                 onSuccess = { weather ->
-                    uiStateImpl.value = uiState.value.copy(weather = weather)
+                    uiStateImpl.value =
+                        uiState.value.copy(weather = weather, isLoading = false, error = null)
                 },
                 onFailure = { error ->
-                    uiStateImpl.value = uiState.value.copy(error = error.message)
+                    uiStateImpl.value = uiState.value.copy(error = error.message, isLoading = false)
                 }
             )
         }
@@ -75,5 +79,5 @@ data class WeatherSearchUiState(
     val weather: Weather? = null,
     val error: String? = null,
     val isLoading: Boolean = false,
-    val unit: MeasurementUnit = MeasurementUnit.CELSIUS
+    val unit: MeasurementUnit = MeasurementUnit.Metric
 )

@@ -18,16 +18,8 @@ fun WeatherResponse.mapToDomainModel(): Weather {
 }
 
 fun <T> Response<T>.unwrapResponse(): Result<T> {
-    return when {
-        isSuccessful -> {
-            val body = body()
-            if (body != null) Result.success(body)
-            else Result.failure(Exception("Body is null"))
-        }
-
-        else -> {
-            val raw = raw().toString()
-            Result.failure(Exception("Unknown error: $raw"))
-        }
+    return when (code()) {
+        in 200..299 -> Result.success(body()!!)
+        else -> Result.failure(Exception(errorBody()?.string() ?: "Unknown error"))
     }
 }

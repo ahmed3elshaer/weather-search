@@ -22,6 +22,8 @@ import com.ahmed3elshaer.weather.data.storage.model.MeasurementUnit
 import com.ahmed3elshaer.weather.domain.model.Coord
 import com.ahmed3elshaer.weather.domain.model.Weather
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -34,36 +36,36 @@ class WeatherSearchViewModelTest {
 }
 
 private class FakeWeatherSearchRepository : WeatherSearchRepository {
-    override suspend fun searchWithCity(name: String): Result<Weather> {
-        return Result.success(
-            Weather(
-                coord = Coord(lon = 0.0, lat = 0.0),
-                weatherDescription = "",
-                temperature = 0.0,
-                feelsLike = 0.0,
-                cityName = ""
-            )
-        )
-    }
+	override suspend fun searchWithCity(name: String): Result<Weather> {
+		return Result.success(
+			Weather(
+				coord = Coord(lon = 0.0, lat = 0.0),
+				weatherDescription = "",
+				temperature = 0.0,
+				feelsLike = 0.0,
+				cityName = ""
+			)
+		)
+	}
 
-    override suspend fun searchWithLocation(lat: Double, lng: Double): Result<Weather> {
-        return Result.success(
-            Weather(
-                coord = Coord(lon = 0.0, lat = 0.0),
-                weatherDescription = "",
-                temperature = 0.0,
-                feelsLike = 0.0,
-                cityName = ""
-            )
-        )
-    }
+	override suspend fun searchWithLocation(lat: Double, lng: Double): Result<Weather> {
+		return Result.success(
+			Weather(
+				coord = Coord(lon = 0.0, lat = 0.0),
+				weatherDescription = "",
+				temperature = 0.0,
+				feelsLike = 0.0,
+				cityName = ""
+			)
+		)
+	}
 
-    override fun changeMeasurementUnit(measurementUnit: MeasurementUnit) {
-        // no-op
-    }
+	override fun changeMeasurementUnit(measurementUnit: MeasurementUnit) {
+		// no-op
+	}
 
-    override fun getMeasurementUnit(): MeasurementUnit {
-        return MeasurementUnit.CELSIUS
-    }
+	override fun getMeasurementUnit(): Flow<MeasurementUnit> {
+		return flowOf( MeasurementUnit.Metric)
+	}
 
 }
