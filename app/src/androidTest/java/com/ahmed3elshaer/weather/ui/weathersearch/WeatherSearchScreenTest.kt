@@ -180,4 +180,39 @@ class WeatherSearchScreenTest {
         // Assert that an error message is shown
     }
 
+    // extra tests for empty and input error state
+    @Test
+    fun emptyState_IsShown_Properly() {
+        composeTestRule.setContent {
+            WeatherSearchScreen(
+                isLoading = false,
+                weather = null,
+                onCitySearch = {},
+                temperatureUnit = MeasurementUnit.Metric,
+                onTemperatureUnitChange = {},
+                error = null,
+                inputFieldError = "Please enter a city name, e.g. London, Cairo, etc."
+            )
+        }
+        // Asserts that error message is displayed
+        composeTestRule.onNodeWithText("Please enter a city name, e.g. London, Cairo, etc.").assertExists()
+    }
+
+    @Test
+    fun inputErrorState_IsShown_Properly() {
+        composeTestRule.setContent {
+            WeatherSearchScreen(
+                isLoading = false,
+                weather = null,
+                onCitySearch = {},
+                temperatureUnit = MeasurementUnit.Metric,
+                onTemperatureUnitChange = {},
+                error = null,
+                inputFieldError = "City name should not be a number"
+            )
+        }
+        // Asserts that error message is displayed
+        composeTestRule.onNodeWithText("City name should not be a number").assertExists()
+    }
+
 }

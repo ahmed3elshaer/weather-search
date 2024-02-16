@@ -42,12 +42,11 @@ import com.google.accompanist.permissions.*
 
 @Composable
 fun WeatherSearchScreen(
-    modifier: Modifier = Modifier,
-    viewModel: WeatherSearchViewModel = hiltViewModel()
+    modifier: Modifier = Modifier, viewModel: WeatherSearchViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val selectedUnit by viewModel.measurementUnit.collectAsStateWithLifecycle()
-
+    Log.d("WeatherSearchScreen", "WeatherSearchScreen: $state")
     RequestLocationPermission(onPermissionGranted = {
         viewModel.onUserEvent(WeatherSearchUserEvent.SearchByLocation)
     })
@@ -56,6 +55,8 @@ fun WeatherSearchScreen(
         weather = state.weather,
         isLoading = state.isLoading,
         error = state.error,
+        isEmpty = state.isEmpty,
+        inputFieldError = state.inputFieldError,
         onCitySearch = { viewModel.onUserEvent(WeatherSearchUserEvent.SearchByCity(it)) },
         onTemperatureUnitChange = { viewModel.changeMeasurementUnit(it) },
         temperatureUnit = selectedUnit
@@ -139,6 +140,9 @@ internal fun WeatherSearchScreen(
     weather: Weather?,
     isLoading: Boolean = false,
     error: String? = null,
+    isEmpty: Boolean = false,
+    isRequestInProgress: Boolean = false,
+    inputFieldError: String? = null,
     temperatureUnit: MeasurementUnit,
     onTemperatureUnitChange: (MeasurementUnit) -> Unit,
     onCitySearch: (name: String) -> Unit,
@@ -152,11 +156,12 @@ internal fun WeatherSearchScreen(
     ) {
         var nameWeatherSearch by rememberSaveable { mutableStateOf("") }
 
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+        OutlinedTextField(modifier = Modifier.fillMaxWidth(),
             value = nameWeatherSearch,
             onValueChange = { nameWeatherSearch = it },
             label = { Text("Enter city name") },
+            isError = inputFieldError != null,
+            supportingText = { Text(inputFieldError ?: "") },
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
             leadingIcon = {
                 Icon(
@@ -169,38 +174,40 @@ internal fun WeatherSearchScreen(
             ),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyLarge,
-            keyboardActions = KeyboardActions(
-                onSearch = {
-                    onCitySearch(nameWeatherSearch)
-                }
-            )
-        )
+            keyboardActions = KeyboardActions(onSearch = {
+                onCitySearch(nameWeatherSearch)
+            }))
 
         TemperatureUnitChips(
-            temperatureUnit = temperatureUnit,
-            onTemperatureUnitChange = onTemperatureUnitChange
+            temperatureUnit = temperatureUnit, onTemperatureUnitChange = onTemperatureUnitChange
         )
 
-        Button(modifier = Modifier.fillMaxWidth(), onClick = { onCitySearch(nameWeatherSearch) }) {
-            Text("Search")
+        Button(modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading,
+            onClick = { onCitySearch(nameWeatherSearch) }) {
+            if (isLoading) {
+                CircularProgressIndicator()
+            } else {
+                Icon(imageVector = Icons.Filled.Search, contentDescription = "Search")
+                Text("Search")
+            }
         }
-
-        if (isLoading) {
-            LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        if (weather != null) {
-            WeatherDetails(weather = weather, temperatureUnit = temperatureUnit)
-        }
-
-        if (error != null) {
-            Text(
+        when {
+            weather != null -> WeatherDetails(weather = weather, temperatureUnit = temperatureUnit)
+            error != null -> Text(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.error,
                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                 textAlign = TextAlign.Center,
                 text = error
+            )
+
+            isEmpty -> Text(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                textAlign = TextAlign.Center,
+                text = "City not found"
             )
         }
     }
@@ -208,13 +215,10 @@ internal fun WeatherSearchScreen(
 
 @Composable
 private fun TemperatureUnitChips(
-    temperatureUnit: MeasurementUnit,
-    onTemperatureUnitChange: (MeasurementUnit) -> Unit
+    temperatureUnit: MeasurementUnit, onTemperatureUnitChange: (MeasurementUnit) -> Unit
 ) {
     val temperatureUnitOptions = listOf(
-        MeasurementUnit.Standard,
-        MeasurementUnit.Imperial,
-        MeasurementUnit.Metric
+        MeasurementUnit.Standard, MeasurementUnit.Imperial, MeasurementUnit.Metric
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -233,20 +237,16 @@ private fun TemperatureUnitChips(
 
 @Composable
 private fun TemperatureUnitChip(
-    unit: MeasurementUnit,
-    isSelected: Boolean,
-    onTemperatureUnitSelected: (MeasurementUnit) -> Unit
+    unit: MeasurementUnit, isSelected: Boolean, onTemperatureUnitSelected: (MeasurementUnit) -> Unit
 ) {
     val chipBackgroundColor =
         if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
     val chipContentColor =
         if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
-    Surface(
-        shape = MaterialTheme.shapes.small,
+    Surface(shape = MaterialTheme.shapes.small,
         color = chipBackgroundColor,
-        modifier = Modifier.clickable { onTemperatureUnitSelected(unit) }
-    ) {
+        modifier = Modifier.clickable { onTemperatureUnitSelected(unit) }) {
         Text(
             text = unit.name,
             color = chipContentColor,
@@ -264,14 +264,10 @@ fun WeatherDetails(weather: Weather, temperatureUnit: MeasurementUnit) {
         horizontalAlignment = Alignment.Start
     ) {
         WeatherDetailRow(
-            icon = Icons.Outlined.LocationCity,
-            label = "City:",
-            value = weather.cityName
+            icon = Icons.Outlined.LocationCity, label = "City:", value = weather.cityName
         )
         WeatherDetailRow(
-            icon = Icons.Outlined.Cloud,
-            label = "Weather:",
-            value = weather.weatherDescription
+            icon = Icons.Outlined.Cloud, label = "Weather:", value = weather.weatherDescription
         )
         WeatherDetailRow(
             icon = Icons.Filled.Thermostat,
@@ -301,8 +297,7 @@ private fun WeatherDetailRow(icon: ImageVector, label: String, value: String) {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Icon(
-            imageVector = icon,
-            contentDescription = label
+            imageVector = icon, contentDescription = label
         )
         Text(
             text = label,
@@ -310,8 +305,7 @@ private fun WeatherDetailRow(icon: ImageVector, label: String, value: String) {
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
         Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge
+            text = value, style = MaterialTheme.typography.bodyLarge
         )
 
     }
@@ -329,7 +323,8 @@ private fun DefaultPreview() {
             temperature = 21.0,
             feelsLike = 22.0,
             cityName = "Cairo"
-        ), onCitySearch = {},
+        ),
+            onCitySearch = {},
             temperatureUnit = MeasurementUnit.Metric,
             onTemperatureUnitChange = {})
     }
@@ -345,7 +340,8 @@ private fun PortraitPreview() {
             temperature = 21.0,
             feelsLike = 22.0,
             cityName = "Cairo"
-        ), onCitySearch = {},
+        ),
+            onCitySearch = {},
             temperatureUnit = MeasurementUnit.Metric,
             onTemperatureUnitChange = {})
     }
@@ -355,13 +351,15 @@ private fun PortraitPreview() {
 @Composable
 private fun LoadingPortraitPreview() {
     MyApplicationTheme {
-        WeatherSearchScreen(isLoading = true, weather = Weather(
-            coord = Coord(lon = 0.0, lat = 0.0),
-            weatherDescription = "a bit cloudy",
-            temperature = 21.0,
-            feelsLike = 22.0,
-            cityName = "Cairo"
-        ), onCitySearch = {},
+        WeatherSearchScreen(isLoading = true,
+            weather = Weather(
+                coord = Coord(lon = 0.0, lat = 0.0),
+                weatherDescription = "a bit cloudy",
+                temperature = 21.0,
+                feelsLike = 22.0,
+                cityName = "Cairo"
+            ),
+            onCitySearch = {},
             temperatureUnit = MeasurementUnit.Metric,
             onTemperatureUnitChange = {})
     }
@@ -371,13 +369,15 @@ private fun LoadingPortraitPreview() {
 @Composable
 private fun ErrorPortraitPreview() {
     MyApplicationTheme {
-        WeatherSearchScreen(error = "City not found", weather = Weather(
-            coord = Coord(lon = 0.0, lat = 0.0),
-            weatherDescription = "a bit cloudy",
-            temperature = 21.0,
-            feelsLike = 22.0,
-            cityName = "Cairo"
-        ), onCitySearch = {},
+        WeatherSearchScreen(error = "City not found",
+            weather = Weather(
+                coord = Coord(lon = 0.0, lat = 0.0),
+                weatherDescription = "a bit cloudy",
+                temperature = 21.0,
+                feelsLike = 22.0,
+                cityName = "Cairo"
+            ),
+            onCitySearch = {},
             temperatureUnit = MeasurementUnit.Metric,
             onTemperatureUnitChange = {})
     }

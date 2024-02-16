@@ -1,5 +1,6 @@
 package com.ahmed3elshaer.weather.data.remote.model
 
+import com.ahmed3elshaer.weather.domain.exceptions.CityNotFound
 import com.ahmed3elshaer.weather.domain.model.Coord
 import com.ahmed3elshaer.weather.domain.model.Weather
 import retrofit2.Response
@@ -20,6 +21,8 @@ fun WeatherResponse.mapToDomainModel(): Weather {
 fun <T> Response<T>.unwrapResponse(): Result<T> {
     return when (code()) {
         in 200..299 -> Result.success(body()!!)
+        401 -> Result.failure(Exception("Unauthorized"))
+        404 -> Result.failure(CityNotFound())
         else -> Result.failure(Exception(errorBody()?.string() ?: "Unknown error"))
     }
 }
