@@ -1,72 +1,84 @@
-## Drones
+# ⛈️ Weather Search App
 
-[[_TOC_]]
+## 🕹️ Overview
 
----
+The Weather Search App is a robust Android application 📱 that serves weather information ☁️🌤️🌩️ for a specific location
+using the [OpenWeatherMap API](https://openweathermap.org/api).
 
-:scroll: **START**
+## 💡 Features
 
+- 🔍 Search for weather information based on city name.
+- 🌡️ View current weather conditions including temperature, humidity, wind speed, etc.
+- 📍 Shows data for the user's current location by default.
+- 🌓 Dark mode support for better usability in low-light environments.
+- 🎨 Material3 (Material You) design for a modern and consistent user experience.
+- 🔀 Support for both portrait and landscape orientations.
+- 🧪 Unit testing.
+- 🛠️ Integration testing.
+- 🖥️ UI Tests.
 
-### Introduction
+## 📸 Screenshots
 
-There is a major new technology that is destined to be a disruptive force in the field of transportation: **the drone**. Just as the mobile phone allowed developing countries to leapfrog older technologies for personal communication, the drone has the potential to leapfrog traditional transportation infrastructure.
+<img src="art/art-1.png" alt="Screenshot 1" width="200"/> <img src="art/art-2.png" alt="Screenshot 2" width="200"/>
 
-Useful drone functions include delivery of small items that are (urgently) needed in locations with difficult access.
+<img src="art/art-3.png" alt="Screenshot 3" width="200"/> <img src="art/art-4.png" alt="Screenshot 4" width="200"/>
 
----
+<img src="art/art-5.png" alt="Screenshot 5" width="200"/>
 
-### Task description
+## 🚀 Installation
 
-We have a fleet of **10 drones**. A drone is capable of carrying devices, other than cameras, and capable of delivering small loads. For our use case **the load is medications**.
+To smoke up the Weather Search App on your local machine 💻 , follow these steps:
 
-A **Drone** has:
-- serial number (100 characters max);
-- model (Lightweight, Middleweight, Cruiserweight, Heavyweight);
-- weight limit (500gr max);
-- battery capacity (percentage);
-- state (IDLE, LOADING, LOADED, DELIVERING, DELIVERED, RETURNING).
+1. 🔑 Git clone this repository to your local machine
+   using `git clone https://github.com/ahmed3elshaer/weather-search.git`
+2. 🖥️ Open the project in Android Studio.
+3. 🏗️ Build and run the project on an emulator or physical device.
 
-Each **Medication** has: 
-- name (allowed only letters, numbers, ‘-‘, ‘_’);
-- weight;
-- code (allowed only upper case letters, underscore and numbers);
-- image (picture of the medication case).
+## 🛠️ Usage
 
-Develop a service via REST API that allows clients to communicate with the drones (i.e. **dispatch controller**). The specific communicaiton with the drone is outside the scope of this task. 
+1. Upon launching the app, you'll be greeted with a search bar.
+2. 🔐 The app will request the user to grant the location permission.
+3. 🌍 The app will display the current weather conditions for the user's current location.
+4. 📝 Enter the name of the city for which you want to check the weather and press the search button.
+5. 📊 The app will display the current weather conditions for the specified location or the city name in the case of
+   search.
 
-The service should allow:
-- registering a drone;
-- loading a drone with medication items;
-- checking loaded medication items for a given drone; 
-- checking available drones for loading;
-- check drone battery level for a given drone;
+## 🏗️ Technologies
 
-> Feel free to make assumptions for the design approach. 
+The Weather Search App hinges on the following technologies:
 
----
+- [Kotlin](https://kotlinlang.org/) - The programming language used for crafting the app.
+- [Jetpack Compose](https://developer.android.com/jetpack/compose) - A modern toolkit to build native UI.
+- [Android Jetpack](https://developer.android.com/jetpack) - A suite of libraries, tools, and guidance for developers.
+- [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) - A robust dependency injection
+  library for Android.
+- [ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel) - A class storing and managing
+  UI-related data.
+- [Play Services Location](https://developers.google.com/android/guides/setup) - APIs for accessing location data.
+- [Retrofit](https://square.github.io/retrofit/) - A type-safe HTTP client for Android and Java.
+- [GLIDE](https://bumptech.github.io/glide/) - A fast and efficient image loading library for Android.
+- [Material3 (Material You) Components for Android](https://material.io/develop/android/docs/getting-started/) - A
+  library providing reusable UI components.
+- [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - A library for asynchronous programming.
+- [Kotlin Flow](https://kotlinlang.org/docs/flow.html) - For asynchronous data handling.
 
-### Requirements
+## 🏢 Architecture
 
-While implementing your solution **please take care of the following requirements**: 
+This project adopts the robust **MVVM** (Model-View-ViewModel) architecture pattern, which provides a clear separation
+of concerns. The user interface is separated from the business logic, providing the merits of modular and testable code.
 
-#### Functional requirements
+- **DATA**: Contains the data sources and repositories for fetching weather data from OpenWeatherMap API and retrieving
+  the user's current location.
+- **DOMAIN**: Contains the business logic, use cases, and structural models for the application. e.g., the Weather model
+  and the GetWeatherUseCase.
+- **UI**: Composes the visual interfaces and view models of the application.
 
-- Prevent the drone from being loaded with more weight that it can carry;
-- Prevent the drone from being in LOADING state if the battery level is **below 25%**;
-- Introduce a periodic task to check drones battery levels and create history/audit event log for this;
-- There is no need for UI.
+Further, the application features the single activity architecture paradigm, adhering to the modern Android development
+practices.
 
----
+## 📂 Project Structure
 
-#### Non-functional requirements
-
-- The project must be buildable and runnable;
-- The project must have Unit tests;
-- The project must have a README file with build/run/test instructions (use a DB that can be run locally, e.g. in-memory, via container);
-- Any data required by the application to run (e.g. reference tables, dummy data) must be preloaded in the database;
-- Input/output data must be in JSON format;
-- Use a framework of your choice, but popular, up-to-date, and long-term support versions are recommended.
-
----
-
-:scroll: **END** 
+The project exhibits Google's recommended app architecture. It is divided into specific packages, ensuring clean code
+and easy navigation.
+This project doesn't necessitate the complexity of multi-module architecture; the package-based architecture has been
+deemed more suitable.
